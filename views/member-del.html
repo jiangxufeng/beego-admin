@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+  
+  <head>
+    <meta charset="UTF-8">
+    <title>欢迎页面-X-admin2.0</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width,user-scalable=yes, minimum-scale=0.4, initial-scale=0.8,target-densitydpi=low-dpi" />
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="../static/css/font.css">
+    <link rel="stylesheet" href="../static/css/xadmin.css">
+    <script type="text/javascript" src="../static/js/jquery-3.3.1.min.js"></script>
+    <script type="text/javascript" src="../static/lib/layui/layui.js" charset="utf-8"></script>
+    <script type="text/javascript" src="../static/js/xadmin.js"></script>
+    <!-- 让IE8/9支持媒体查询，从而兼容栅格 -->
+    <!--[if lt IE 9]>
+      <script src="https://cdn.staticfile.org/html5shiv/r29/html5.min.js"></script>
+      <script src="https://cdn.staticfile.org/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+  </head>
+  
+  <body>
+    <div class="x-nav">
+      <a class="layui-btn layui-btn-small" style="line-height:1.6em;margin-top:3px;float:right" href="javascript:location.replace(location.href);" title="刷新">
+        <i class="layui-icon" style="line-height:30px">ဂ</i></a>
+    </div>
+    <div class="x-body">
+      <div class="layui-row">
+        <form class="layui-form layui-col-md12 x-so" action="memberdel" method="get">
+          <input type="hidden" name="q" value="search">
+          <input class="layui-input" placeholder="开始日" name="start" id="start">
+          <input class="layui-input" placeholder="截止日" name="end" id="end">
+          <input type="text" name="username"  placeholder="请输入用户名" autocomplete="off" class="layui-input">
+          <button class="layui-btn"  lay-submit="" lay-filter="sreach"><i class="layui-icon">&#xe615;</i></button>
+        </form>
+      </div>
+      <xblock>
+        <button class="layui-btn layui-btn-danger" onclick="delAll()"><i class="layui-icon"></i>批量恢复</button>
+        <span class="x-right" style="line-height:40px">共有数据：{{.total  }} 条</span>
+      </xblock>
+      <table class="layui-table">
+        <thead>
+        <tr>
+          <th>
+            <div class="layui-unselect header layui-form-checkbox" lay-skin="primary"><i class="layui-icon">&#xe605;</i></div>
+          </th>
+          <th>ID</th>
+          <th>用户名</th>
+          <th>昵称</th>
+          <th>性别</th>
+          <th>加入时间</th>
+          <th>状态</th>
+          <th>操作</th></tr>
+        </thead>
+        <tbody>
+          {{range .userlist}}
+          <tr>
+            <td>
+              <div class="layui-unselect layui-form-checkbox" lay-skin="primary" data-id={{.Id}}><i class="layui-icon">&#xe605;</i></div>
+            </td>
+            <td>{{.Id}}</td>
+            <td>{{.Username}}</td>
+            <td>{{.Nickname}}</td>
+            <td>{{if .Sex }}女{{else}}男{{end}}</td>
+            <td>{{date .JoinTime "Y-m-d H:i:s"}}</td>
+            <td class="td-status">
+              <span class="layui-btn layui-btn-danger layui-btn-mini">
+                                已删除
+                            </span>
+            <td class="td-manage">
+              <a title="恢复" onclick="member_recover(this,{{.Id}})" href="javascript:;">
+                <i class="layui-icon">&#x1005;</i>
+              </a>
+              <a title="删除" onclick="member_del(this,{{.Id}})" href="javascript:;">
+                <i class="layui-icon">&#xe640;</i>
+              </a>
+            </td>
+          </tr>
+        {{end}}
+        </tbody>
+      </table>
+      <div class="page">
+        <div>
+          <a class="prev" href="">&lt;&lt;</a>
+          <a class="num" href="">1</a>
+          <span class="current">2</span>
+          <a class="num" href="">3</a>
+          <a class="num" href="">489</a>
+          <a class="next" href="">&gt;&gt;</a>
+        </div>
+      </div>
+
+    </div>
+    <script>
+      layui.use('laydate', function(){
+        var laydate = layui.laydate;
+        
+        //执行一个laydate实例
+        laydate.render({
+          elem: '#start' //指定元素
+        });
+
+        //执行一个laydate实例
+        laydate.render({
+          elem: '#end' //指定元素
+        });
+      });
+
+
+      /*用户-删除*/
+      function member_del(obj,id){
+          layer.confirm('确认要删除吗？',function(index){
+            $.ajax({
+              type:"delete",
+              url:"/admin/member/"+id,
+              success:function(res){
+                console.log(res.data);
+                if(res.code != 0){
+                  layer.alert(res.message, {icon: 2},function () {
+                    // 获得frame索引
+                    var index = parent.layer.getFrameIndex(window.name);
+                    //关闭当前frame
+                    parent.layer.close(index);
+                  });
+                } else {
+                  $(obj).parents("tr").remove();
+                  layer.msg('已删除!',{icon:1,time:1000});
+                }
+              },
+              error:function(){
+                console.log("signUp/getIdCode.php 404");
+              }
+            });
+
+          });
+      }
+
+      /*用户-恢复*/
+      function member_recover(obj,id){
+        layer.confirm('确认要恢复吗？',function(index){
+          //发异步删除数据
+          $.ajax({
+            type:"put",
+            url:"/admin/member/"+id,
+            data:{"del":0},
+            success:function(res){
+              console.log(res.data);
+              if(res.code == 0){
+                $(obj).parents("tr").remove();
+                layer.msg('该账号已恢复使用!',{icon:1,time:1000});
+              }
+              else{
+                layer.msg(res.message, {icon:2})
+              }
+            },
+            error:function(){
+              console.log("signUp/getIdCode.php 404");
+            }
+          });
+        });
+      }
+
+
+
+      function delAll (argument) {
+
+        var data = tableCheck.getData();
+  
+        layer.confirm('确认要恢复吗？'+data,function(index){
+          $.ajax({
+            type:"put",
+            url:"/admin/member/",
+            data:{"del":0, "ids": data.join(";")},
+            success:function(res){
+              console.log(res.data);
+              if(res.code == 0){
+                layer.msg('恢复成功', {icon: 1});
+                $(".layui-form-checked").not('.header').parents('tr').remove();
+              }
+              else{
+                layer.msg(res.message, {icon:2})
+              }
+            },
+            error:function(){
+              console.log("signUp/getIdCode.php 404");
+            }
+          });
+        });
+      }
+    </script>
+
+  </body>
+
+</html>
