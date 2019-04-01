@@ -25,32 +25,15 @@
         <form class="layui-form">
           <div class="layui-form-item">
               <label for="L_email" class="layui-form-label">
-                  <span class="x-red">*</span>邮箱
+                  <span class="x-red">*</span>目录名
               </label>
               <div class="layui-input-inline">
-                  <input type="text" id="L_email" name="username" lay-verify="email"
-                  autocomplete="off" class="layui-input" value="{{.user.Username}}" disabled="" >
+                  <input type="text" id="L_email" name="name" required
+                  autocomplete="off" class="layui-input" value="{{.main.Name}}" >
               </div>
               <div class="layui-form-mid layui-word-aux">
-                  <span class="x-red">*</span>用户名无法更改
               </div>
           </div>
-          <div class="layui-form-item">
-              <label for="L_username" class="layui-form-label">
-                 昵称
-              </label>
-              <div class="layui-input-inline">
-                  <input type="text" id="L_username" name="nickname" required="" lay-verify="nikename"
-                  autocomplete="off" class="layui-input" value="{{.user.Nickname}}">
-              </div>
-          </div>
-            <div class="layui-form-item">
-                <label class="layui-form-label" for="L_sex">性别</label>
-                <div class="layui-input-block">
-                    <input type="radio" name="sex" value=0 title="男" {{if not .user.Sex}}checked{{end}}>
-                    <input type="radio" name="sex" value=1 title="女" {{if .user.Sex }}checked{{end}}>
-                </div>
-            </div>
           <div class="layui-form-item">
               <label for="L_repass" class="layui-form-label">
               </label>
@@ -65,28 +48,13 @@
           $ = layui.jquery;
         var form = layui.form
         ,layer = layui.layer;
-      
-        //自定义验证规则
-        form.verify({
-          nikename: function(value){
-            if(value.length < 0){
-              return '昵称至少得1个字符啊';
-            }
-          }
-          // ,pass: [/(.+){6,12}$/, '密码必须6到12位']
-          // ,repass: function(value){
-          //     if($('#L_pass').val()!=$('#L_repass').val()){
-          //         return '两次密码不一致';
-          //     }
-          // }
-        });
 
         //监听提交
         form.on('submit(add)', function(data){
           console.log(data.field);
             $.ajax({
                 type:"put",
-                url:"/admin/member/{{.user.Id}}",
+                url:"/admin/maincate/?mid={{.main.Id}}",
                 data: data.field,
                 success:function(res){
                     console.log(res.data);

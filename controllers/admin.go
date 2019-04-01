@@ -11,27 +11,27 @@ type AdminController struct {
 }
 
 func (a *AdminController) Index() {
-	user, err := a.Authentication()
-	if err != nil || user.IsAdmin == false {
+	username, admin := a.Authentication()
+	if !admin {
 		a.Abort("403")
 	}
-	a.Data["username"] = user.Username
+	a.Data["username"] = username
 	a.TplName = "index.html"
 }
 
 func (a *AdminController) Welcome() {
-	user, err := a.Authentication()
-	if err != nil || user.IsAdmin == false {
+	username, admin := a.Authentication()
+	if !admin {
 		a.Abort("403")
 	}
-	a.Data["username"] = user.Username
+	a.Data["username"] = username
 	a.Data["time"] = time.Now()
 	a.TplName = "welcome.html"
 }
 
 func (a *AdminController) MemberList() {
-	user, err := a.Authentication()
-	if err != nil || user.IsAdmin == false {
+	_, admin := a.Authentication()
+	if !admin {
 		a.Abort("403")
 	}
 	if q := a.GetString("q"); q == "search" {
@@ -50,8 +50,8 @@ func (a *AdminController) MemberList() {
 }
 
 func (a *AdminController) MemberDel() {
-	user, err := a.Authentication()
-	if err != nil || user.IsAdmin == false {
+	_, admin := a.Authentication()
+	if !admin {
 		a.Abort("403")
 	}
 	if q := a.GetString("q"); q == "search" {
@@ -70,81 +70,144 @@ func (a *AdminController) MemberDel() {
 }
 
 func (a *AdminController) MainList() {
-	user, err := a.Authentication()
-	if err != nil || user.IsAdmin == false {
+	_, admin := a.Authentication()
+	if !admin {
 		a.Abort("403")
 	}
-	a.Data["username"] = user.Username
+
+	if q := a.GetString("q"); q == "search" {
+		name := a.GetString("name", "")
+		mainList, total := MainCateSearch(name)
+		a.Data["mainlist"] = mainList
+		a.Data["total"] = total
+	} else {
+		mainList, total := models.MainCateList()
+		a.Data["mainlist"] = mainList
+		a.Data["total"] = total
+	}
 	a.TplName = "main-list.html"
 }
 
 func (a *AdminController) TagList() {
-	user, err := a.Authentication()
-	if err != nil || user.IsAdmin == false {
+	_, admin := a.Authentication()
+	if !admin {
 		a.Abort("403")
 	}
-	a.Data["username"] = user.Username
 	a.TplName = "cate.html"
 }
 
 func (a *AdminController) PassageList() {
-	user, err := a.Authentication()
-	if err != nil || user.IsAdmin == false {
+	_, admin := a.Authentication()
+	if !admin {
 		a.Abort("403")
 	}
-	a.Data["username"] = user.Username
 	a.TplName = "passage-list.html"
 }
 
 func (a *AdminController) PassageDel() {
-	user, err := a.Authentication()
-	if err != nil || user.IsAdmin == false {
+	_, admin := a.Authentication()
+	if !admin {
 		a.Abort("403")
 	}
-	a.Data["username"] = user.Username
 	a.TplName = "passage-del.html"
 }
 
 func (a *AdminController) SubList() {
-	user, err := a.Authentication()
-	if err != nil || user.IsAdmin == false {
+	_, admin := a.Authentication()
+	if !admin {
 		a.Abort("403")
 	}
-	a.Data["username"] = user.Username
+	if q := a.GetString("q"); q == "search" {
+		name := a.GetString("name", "")
+		subList, total := SubCateSearch(name)
+		a.Data["sublist"] = subList
+		a.Data["total"] = total
+	} else {
+		subList, total := models.SubCateList()
+		a.Data["sublist"] = subList
+		a.Data["total"] = total
+	}
 	a.TplName = "sub-list.html"
 }
 
 func (a *AdminController) UserCreate() {
-	user, err := a.Authentication()
-	if err != nil || user.IsAdmin == false {
+	_, admin := a.Authentication()
+	if !admin {
 		a.Abort("403")
 	}
 	a.TplName = "member-add.html"
 }
 
 func (a *AdminController) ChangePassword() {
-	admin, err := a.Authentication()
-	if err != nil || admin.IsAdmin == false {
+	_, admin := a.Authentication()
+	if !admin {
 		a.Abort("403")
 	}
 
 	param := a.Ctx.Input.Params()["0"]
 	uid, _ := strconv.Atoi(param)
-	user, err := models.GetUserById(uid)
+	user, _ := models.GetUserById(uid)
 	a.Data["user"] = user
 	a.TplName = "member-password.html"
 }
 
 func (a *AdminController) ChangeUserInfo() {
-	admin, err := a.Authentication()
-	if err != nil || admin.IsAdmin == false {
+	_, admin := a.Authentication()
+	if !admin {
 		a.Abort("403")
 	}
 
 	param := a.Ctx.Input.Params()["0"]
 	uid, _ := strconv.Atoi(param)
 
-	user, err := models.GetUserById(uid)
+	user, _ := models.GetUserById(uid)
 	a.Data["user"] = user
 	a.TplName = "member-edit.html"
+}
+
+func (a *AdminController) ChangeMainCateInfo() {
+	_, admin := a.Authentication()
+	if !admin {
+		a.Abort("403")
+	}
+	param := a.Ctx.Input.Params()["0"]
+	mid, _ := strconv.Atoi(param)
+
+	main, _ := models.GetMainCateById(mid)
+	a.Data["main"] = main
+	a.TplName = "main-edit.html"
+}
+
+func (a *AdminController) MainCateCreate() {
+	_, admin := a.Authentication()
+	if !admin {
+		a.Abort("403")
+	}
+	a.TplName = "main-add.html"
+}
+
+func (a *AdminController) SubCateCreate() {
+	_, admin := a.Authentication()
+	if !admin {
+		a.Abort("403")
+	}
+
+	mainList, _ := models.MainCateList()
+	a.Data["mainList"] = mainList
+	a.TplName = "sub-add.html"
+}
+
+func (a *AdminController) ChangeSubCateInfo() {
+	_, admin := a.Authentication()
+	if !admin {
+		a.Abort("403")
+	}
+	param := a.Ctx.Input.Params()["0"]
+	sid, _ := strconv.Atoi(param)
+
+	sub, _ := models.GetSubCateById(sid)
+	mainList, _ := models.MainCateList()
+	a.Data["sub"] = sub
+	a.Data["mainList"] = mainList
+	a.TplName = "sub-edit.html"
 }

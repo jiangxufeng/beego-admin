@@ -64,11 +64,11 @@ func (p *PassageController) GetAll(){
 		passages []*models.Passage
 		total int64
 	)
-	main := p.GetString("main")
-	sub := p.GetString("sub")
-	if sub != "" {
+	main, _ := p.GetInt("main", 0)
+	sub, _ := p.GetInt("sub", 0)
+	if sub != 0 {
 		passages, total = models.GetPassagesBySubCate(sub)
-	} else if main != "" {
+	} else if main != 0 {
 		passages, total = models.GetPassagesByMainCate(main)
 	} else {
 		passages, total = models.PassageList()

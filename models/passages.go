@@ -20,9 +20,9 @@ type Passage struct {
 	// 标签
 	Tags string `orm:"size(100);" json:"tags"`
 	// 子目录
-	SubCategory string  `json:"sub_category"`
+	SubCategory int  `json:"sub_category"`
 	// 主目录
-	MainCategory string ` json:"main_category"`
+	MainCategory int ` json:"main_category"`
 	// 发布时间
 	Created time.Time `orm:"auto_now_add;type(datetime)" json:"created"`
 	// 浏览次数
@@ -88,18 +88,20 @@ func PassageList()([]*Passage, int64){
 }
 
 // 根据主目录名获取文章
-func GetPassagesByMainCate(name string) ([]*Passage, int64) {
+func GetPassagesByMainCate(id int) ([]*Passage, int64) {
 	passages := make([]*Passage, 0)
-	new(Passage).Query().Filter("MainCategory", name).OrderBy("-Id").All(&passages)
-	total, _ := new(Passage).Query().Filter("MainCategory", name).Count()
+	query := new(Passage).Query().Filter("MainCategory", id)
+	total, _ := query.Count()
+	query.OrderBy("-Id").All(&passages)
 	return passages, total
 }
 
 // 根据子目录名获取文章
-func GetPassagesBySubCate(name string) ([]*Passage, int64) {
+func GetPassagesBySubCate(id int) ([]*Passage, int64) {
 	passages := make([]*Passage, 0)
-	new(Passage).Query().Filter("SubCategory", name).OrderBy("-Id").All(&passages)
-	total, _ := new(Passage).Query().Filter("SubCategory", name).Count()
+	query := new(Passage).Query().Filter("SubCategory", id)
+	total, _ := query.Count()
+	query.OrderBy("-Id").All(&passages)
 	return passages, total
 }
 

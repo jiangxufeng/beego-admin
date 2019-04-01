@@ -29,16 +29,17 @@ func (b *BaseController) ajaxMsg(code int, data interface{}, msg interface{}, ot
 	b.StopRun()
 }
 
-func (b *BaseController) Authentication() (user *models.User, err error) {
+func (b *BaseController) Authentication() (string, bool) {
+	admin := b.GetSession("admin")
 	username := b.GetSession("username")
-	if username != nil {
-		if user, err := models.GetUserByName(username.(string)); err != nil{
-			return nil, err
+	if admin != nil && username != nil{
+		if admin.(string) == "admin"{
+			return username.(string),true
 		} else {
-			return user, nil
+			return "", false
 		}
 	}
-	return nil, errors.New("no session")
+	return "", false
 }
 
 // token验证
@@ -90,18 +91,18 @@ func fatal(err error) {
 }
 
 // 登录
-func Login(username, password string) (int, error){
+func Login(username, password string) (bool, error){
 	user := models.User{
 		Username: username,
 	}
 	if err := orm.NewOrm().Read(&user,"username"); err == nil {
 		if user.Password == models.Md5([]byte(password)){
-			return user.Id, nil
+			return user.IsAdmin, nil
 		} else {
-            return 0, PasswordError
+            return false, PasswordError
 		}
 	} else {
-		return 0, UserDoesNotExistError
+		return false, UserDoesNotExistError
 	}
 }
 

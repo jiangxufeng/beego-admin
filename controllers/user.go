@@ -54,8 +54,8 @@ func (u *UserController) Get() {
 }
 
 func (u *UserController) Put() {
-	admin, err := u.Authentication()
-	if err != nil || admin.IsAdmin == false {
+	_, admin :=  u.Authentication()
+	if !admin {
 		u.Abort("403")
 	}
 
@@ -77,8 +77,8 @@ func (u *UserController) Put() {
 }
 
 func (u *UserController) Delete() {
-	admin, err := u.Authentication()
-	if err != nil || admin.IsAdmin == false {
+	_, admin :=  u.Authentication()
+	if !admin {
 		u.Abort("403")
 	}
 
@@ -105,10 +105,12 @@ func (u *UserController) Login() {
 	} else {
 		username := u.GetString("username")
 		password := u.GetString("password")
-		if _, err := Login(username, password); err == nil {
+		if isadmin, err := Login(username, password); err == nil {
 			u.SetSession("username", username)
-			if username == "summer" {
+			if isadmin{
 				u.SetSession("admin", "admin")
+			} else {
+				u.SetSession("admin", "noadmin")
 			}
 			u.ajaxMsg(0, "", "success to login", nil)
 		} else if err == PasswordError {
@@ -126,8 +128,8 @@ func (u *UserController) Logout() {
 
 
 func (u *UserController) OpAll() {
-	admin, err := u.Authentication()
-	if err != nil || admin.IsAdmin == false {
+	_, admin := u.Authentication()
+	if !admin {
 		u.Abort("403")
 	}
     ids := strings.Split(u.GetString("ids"), ";")

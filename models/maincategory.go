@@ -9,7 +9,7 @@ type MainCategory struct {
 	// ID
 	Id int `json:"id"`
 	// 主目录名
-	Name string `orm:"unique;index;size(8)" json:"name"`
+	Name string `orm:"unique;index;size(8)" json:"name" form:"name"`
 	// 创建时间
 	Created time.Time `orm:"auto_now_add;type(datetime)" json:"created"`
 }
@@ -51,16 +51,27 @@ func (m *MainCategory) Query() orm.QuerySeter {
 	return orm.NewOrm().QueryTable(m)
 }
 
-func GetSons(Id int) (sons []*SubCategory){
+func GetSons(Id int) (sons []*SubCategory, total int64){
 	new(SubCategory).Query().Filter("father", Id).All(&sons)
+	total, _ = new(SubCategory).Query().Filter("father", Id).Count()
 	return
 }
 
-func MainCateList()([]*MainCategory, int64){
+func MainCateList()([]map[string]interface{}, int64){
 	list := make([]*MainCategory, 0)
 	total, _ := new(MainCategory).Query().Count()
 	new(MainCategory).Query().OrderBy("-Id").All(&list)
-	return list, total
+	var results []map[string]interface{}
+	for _, v := range list{
+		temp := make(map[string]interface{})
+		_, sonnum := GetSons(v.Id)
+		temp["id"] = v.Id
+		temp["name"] = v.Name
+		temp["Created"] = v.Created
+		temp["sonnum"] = sonnum
+		results = append(results, temp)
+	}
+	return results, total
 }
 
 func MainCateSave(m *MainCategory) (int64, error){
@@ -71,7 +82,7 @@ func MainCateSave(m *MainCategory) (int64, error){
 	return 0, err
 }
 
-func MainCateGetById(id int) (*MainCategory, error){
+func GetMainCateById(id int) (*MainCategory, error){
 	m := new(MainCategory)
 	err := m.Query().Filter("Id", id).One(m)
 	if err != nil {
@@ -80,7 +91,7 @@ func MainCateGetById(id int) (*MainCategory, error){
 	return m, nil
 }
 
-func MainCateGetByName(name string) (*MainCategory, error){
+func GetMainCateByName(name string) (*MainCategory, error){
 	m := new(MainCategory)
 	err := m.Query().Filter("name", name).One(m)
 	if err != nil {
